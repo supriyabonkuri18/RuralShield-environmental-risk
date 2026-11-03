@@ -12,9 +12,9 @@ const ORDER = ["Low", "Moderate", "High", "Very High"];
 
 type Props = {
   hazard: "flood" | "drought";
-  prediction?: HazardPrediction;
+  prediction?: HazardPrediction | undefined;
   loading: boolean;
-  error?: string | null;
+  error?: string | null | undefined;
 };
 
 export function RiskCard({ hazard, prediction, loading, error }: Props) {

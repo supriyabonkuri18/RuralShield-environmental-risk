@@ -78,8 +78,8 @@ export function demoData(scenario: "wet" | "dry"): EnvData {
     d.setDate(d.getDate() - 6 + i);
     return {
       date: d.toISOString().slice(0, 10),
-      rain: scenario === "wet" ? [12, 30, 22, 41, 18, 55, 70][i] : [0, 0, 1.2, 0, 0, 0, 0.4][i],
-      temp: scenario === "wet" ? [26, 25, 25, 24, 25, 24, 24][i] : [36, 38, 39, 37, 40, 41, 39][i],
+      rain: (scenario === "wet" ? [12, 30, 22, 41, 18, 55, 70] : [0, 0, 1.2, 0, 0, 0, 0.4])[i] ?? 0,
+      temp: (scenario === "wet" ? [26, 25, 25, 24, 25, 24, 24] : [36, 38, 39, 37, 40, 41, 39])[i] ?? null,
     };
   });
   return {
@@ -108,7 +108,7 @@ export type PredictionResponse = {
 };
 
 export const DEFAULT_API_URL =
-  (import.meta.env.VITE_RISK_API_URL as string | undefined) ?? "http://localhost:8000";
+  (import.meta.env["VITE_RISK_API_URL"] as string | undefined) ?? "http://localhost:8000";
 
 export async function predictRisk(apiUrl: string, ind: Indicators): Promise<PredictionResponse> {
   const res = await fetch(`${apiUrl.replace(/\/$/, "")}/predict`, {
