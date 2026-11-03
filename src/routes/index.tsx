@@ -63,7 +63,7 @@ const UNITS: Record<keyof Indicators, string> = {
 };
 
 function Dashboard() {
-  const [locId, setLocId] = useState(LOCATIONS[0]!.id);
+  const [locId, setLocId] = useState("anantapur");
   const [mode, setMode] = useState<Mode>("live");
   const [apiUrl, setApiUrl] = useState(DEFAULT_API_URL);
   const loc = LOCATIONS.find((l) => l.id === locId)!;
