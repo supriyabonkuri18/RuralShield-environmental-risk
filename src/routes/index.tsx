@@ -1,6 +1,39 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
+import { ClientOnly } from "@tanstack/react-router";
+import { buildRecommendations } from "@/lib/recommendations";
+import type { HazardPrediction } from "@/lib/ruralshield";
+const RiskMap = lazy(() => import("@/components/RiskMap"));
+
+function Recommendations({ ind, pred }: { ind: Indicators; pred?: { flood: HazardPrediction; drought: HazardPrediction } | undefined }) {
+  const r = buildRecommendations(ind, pred);
+  return (
+    <Card className="p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-2xl font-semibold">Recommended actions</h2>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
+          {r.basis === "model" ? "Based on model output + indicators" : "General guidance — not a model prediction"}
+        </span>
+      </div>
+      <div className="mt-4 grid gap-6 md:grid-cols-2">
+        {(["flood", "drought"] as const).map((h) => (
+          <div key={h}>
+            <h3 className="text-lg font-semibold capitalize">{h}</h3>
+            <ul className="mt-2 space-y-2 text-sm">
+              {r[h].map((x) => (
+                <li key={x.text}>{x.text}<div className="text-xs text-muted-foreground">Why: {x.reason}</div></li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      <p className="mt-4 text-xs text-muted-foreground">
+        Illustrative suggestions only, not official or validated advice (the model is trained on synthetic data). Always follow official local weather and disaster-management instructions.
+      </p>
+    </Card>
+  );
+}
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Leaf, Loader2, RefreshCw, ShieldAlert } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -111,6 +144,25 @@ function Dashboard() {
             Start the model with <code>uvicorn api:app --port 8000</code> in the <code>python/</code> folder, or enter the address of a hosted copy above. ({riskError})
           </p>
         )}
+
+        <Card className="p-5">
+          <h2 className="text-2xl font-semibold">Community risk map</h2>
+          <div className="mt-3">
+            <ClientOnly fallback={<div className="h-72 rounded-lg bg-muted sm:h-96" />}>
+              <Suspense fallback={<div className="h-72 rounded-lg bg-muted sm:h-96" />}>
+                <RiskMap loc={loc} flood={risk.data?.predictions.flood.level} drought={risk.data?.predictions.drought.level} dataTime={env.data?.fetchedAt} />
+              </Suspense>
+            </ClientOnly>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+            {[["Low", "bg-risk-low"], ["Moderate", "bg-risk-moderate"], ["High", "bg-risk-high"], ["Very High", "bg-risk-veryhigh"], ["No prediction", "bg-muted-foreground"]].map(([l, c]) => (
+              <span key={l} className="flex items-center gap-1.5"><span className={`h-3 w-3 rounded-full ${c}`} />{l}</span>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">Marker colour = higher of the two model levels for the selected community only. Coordinates are approximate town centres. No risk is shown for surrounding areas.</p>
+        </Card>
+
+        {env.data && <Recommendations ind={env.data.indicators} pred={risk.data?.predictions} />}
 
         <Card className="p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
