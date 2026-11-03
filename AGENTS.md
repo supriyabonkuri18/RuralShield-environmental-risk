@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Risk predictions come only from the separate Python scikit-learn service in python/ (called over HTTP); never reimplement the model in TypeScript — hackathon requires Python ML.
